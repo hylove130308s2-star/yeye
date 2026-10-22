@@ -1,0 +1,266 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>달빛 아래의 비밀방</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 20px 12px;
+  font-family: sans-serif;
+  text-align: center;
+  color: #514565;
+  background: #f4edff;
+}
+h1 { font-size: 26px; }
+p { line-height: 1.7; }
+.room {
+  max-width: 500px;
+  height: 350px;
+  margin: 20px auto;
+  position: relative;
+  overflow: hidden;
+  border: 6px solid white;
+  border-radius: 22px;
+  background: linear-gradient(#aaa3df 0%, #e7d5f3 75%, #c7a6d4 75%);
+}
+.moon {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 42px;
+}
+.window {
+  position: absolute;
+  top: 45px;
+  left: 25px;
+  width: 90px;
+  height: 115px;
+  border: 7px solid #fff0fa;
+  border-radius: 8px;
+  background: #8584c6;
+  font-size: 28px;
+  padding-top: 25px;
+}
+.picture {
+  position: absolute;
+  top: 45px;
+  left: 42%;
+  width: 65px;
+  height: 75px;
+  border: 6px solid #d7afd4;
+  background: #fff0f7;
+  font-size: 30px;
+  padding-top: 13px;
+}
+.object {
+  position: absolute;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 38px;
+  background: transparent;
+  padding: 4px;
+}
+.object:active { transform: scale(.92); }
+.bed {
+  bottom: 18px;
+  left: 23%;
+  width: 55%;
+  height: 90px;
+  background: #e9badb;
+  border: 5px solid #fff0fa;
+}
+.drawer {
+  bottom: 20px;
+  left: 3%;
+  width: 65px;
+  height: 80px;
+  background: #b697ce;
+  border: 4px solid #f9e5ff;
+}
+.door {
+  bottom: 15px;
+  right: 3%;
+  width: 65px;
+  height: 145px;
+  background: #ad8dc2;
+  border: 5px solid #f6e4ff;
+  border-radius: 12px 12px 0 0;
+}
+.clock {
+  top: 32px;
+  right: 8%;
+}
+button, input {
+  font: inherit;
+}
+.action {
+  border: 0;
+  border-radius: 14px;
+  background: #d9c9f5;
+  color: #514565;
+  padding: 12px 16px;
+  margin: 5px;
+}
+#message {
+  min-height: 70px;
+  max-width: 500px;
+  margin: 15px auto;
+  padding: 15px;
+  background: white;
+  border-radius: 14px;
+  line-height: 1.7;
+}
+#inventory {
+  margin: 12px;
+  color: #8c6eac;
+}
+input {
+  width: 120px;
+  padding: 12px;
+  border: 2px solid #d9c9f5;
+  border-radius: 10px;
+  text-align: center;
+  font-size: 20px;
+}
+#ending {
+  display: none;
+  max-width: 500px;
+  margin: 15px auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 18px;
+}
+</style>
+</head>
+<body>
+
+<h1>🌙 달빛 아래의 비밀방</h1>
+<p>깊은 밤, 낯선 방에 갇혔다.<br>
+방 안의 단서를 찾아 탈출하자!</p>
+
+<div class="room" id="room">
+  <div class="moon">🌙</div>
+  <div class="window">✨</div>
+
+  <button class="object picture"
+    onclick="inspect('picture')">🖼️</button>
+
+  <button class="object clock"
+    onclick="inspect('clock')">🕰️</button>
+
+  <button class="object drawer"
+    onclick="inspect('drawer')">🗄️</button>
+
+  <button class="object bed"
+    onclick="inspect('bed')">🛏️</button>
+
+  <button class="object door"
+    onclick="inspect('door')">🚪</button>
+</div>
+
+<div id="message">
+  어디선가 시계 소리가 들린다...<br>
+  방 안의 물건을 눌러 조사해 보자.
+</div>
+
+<div id="inventory">🎒 발견한 단서: 없음</div>
+
+<div id="ending">
+  <h2>🎉 탈출 성공!</h2>
+  <p>문이 열리고 달빛이 방 안으로 쏟아진다.</p>
+  <p>너는 비밀방에서 무사히 탈출했다!</p>
+  <button class="action" onclick="restart()">다시 플레이</button>
+</div>
+
+<div>
+  <p>🔐 문 비밀번호를 입력해 봐!</p>
+  <input id="password" inputmode="numeric"
+    maxlength="4" placeholder="숫자 4개">
+  <button class="action" onclick="unlock()">문 열기</button>
+</div>
+
+<button class="action" onclick="hint()">💡 힌트</button>
+<button class="action" onclick="restart()">🔄 처음부터</button>
+
+<script>
+let clues = [];
+let solved = false;
+
+function say(text) {
+  document.getElementById("message").innerHTML = text;
+}
+
+function inspect(item) {
+  if (solved) return;
+
+  if (item === "picture") {
+    say("🖼️ 그림 뒤에 작은 글씨가 있다!<br>첫 번째 숫자는 <b>2</b>.");
+    addClue("그림: 2");
+  }
+
+  if (item === "clock") {
+    say("🕰️ 멈춘 시계가 가리키는 숫자는 <b>8</b>.<br>두 번째 숫자를 기억하자.");
+    addClue("시계: 8");
+  }
+
+  if (item === "drawer") {
+    say("🗄️ 서랍 안에서 쪽지를 발견했다.<br>세 번째 숫자는 <b>4</b>.");
+    addClue("서랍: 4");
+  }
+
+  if (item === "bed") {
+    say("🛏️ 베개 밑에 마지막 쪽지가 있다.<br>네 번째 숫자는 <b>6</b>.");
+    addClue("침대: 6");
+  }
+
+  if (item === "door") {
+    say("🚪 잠긴 문이다.<br>네 개의 숫자를 순서대로 입력해야 한다.");
+  }
+}
+
+function addClue(clue) {
+  if (!clues.includes(clue)) {
+    clues.push(clue);
+  }
+  document.getElementById("inventory").textContent =
+    "🎒 발견한 단서: " + clues.join(" / ");
+}
+
+function unlock() {
+  if (solved) return;
+
+  const value = document.getElementById("password").value;
+
+  if (value === "2846") {
+    solved = true;
+    say("🔓 철컥! 문이 열렸다!");
+    document.getElementById("ending").style.display = "block";
+    document.getElementById("room").style.opacity = "0.6";
+  } else {
+    say("🔒 비밀번호가 틀렸다...<br>방 안의 단서를 다시 찾아보자.");
+  }
+}
+
+function hint() {
+  say("💡 힌트: 그림 → 시계 → 서랍 → 침대 순서로 조사해 봐!");
+}
+
+function restart() {
+  clues = [];
+  solved = false;
+  document.getElementById("password").value = "";
+  document.getElementById("ending").style.display = "none";
+  document.getElementById("room").style.opacity = "1";
+  document.getElementById("inventory").textContent =
+    "🎒 발견한 단서: 없음";
+  say("어디선가 시계 소리가 들린다...<br>방 안의 물건을 눌러 조사해 보자.");
+}
+</script>
+
+</body>
+</html>
